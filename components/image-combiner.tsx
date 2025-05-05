@@ -18,23 +18,6 @@ export function ImageCombiner() {
   const [error, setError] = useState<string | null>(null)
   const resultSectionRef = useRef<HTMLDivElement>(null)
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null
-    setSelectedFile(file)
-    setResultImage(null)
-    setError(null)
-    
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
-    } else {
-      setPreview(null)
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -98,6 +81,19 @@ export function ImageCombiner() {
       resultSectionRef.current.focus({ preventScroll: true });
     }
   }, [resultImage]);
+
+  // Update preview when file changes
+  useEffect(() => {
+    if (selectedFile) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setPreview(reader.result as string)
+      }
+      reader.readAsDataURL(selectedFile)
+    } else {
+      setPreview(null)
+    }
+  }, [selectedFile]);
 
   return (
     <div className="max-w-6xl mx-auto">
