@@ -18,6 +18,23 @@ export function ImageCombiner() {
   const [error, setError] = useState<string | null>(null)
   const resultSectionRef = useRef<HTMLDivElement>(null)
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null
+    setSelectedFile(file)
+    setResultImage(null)
+    setError(null)
+    
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setPreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    } else {
+      setPreview(null)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -33,21 +50,15 @@ export function ImageCombiner() {
       const formData = new FormData()
       formData.append("file", selectedFile)
       
-      // Get API URL from environment variable with fallback
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
-      
-      // Direct API call to the backend, bypassing Next.js API route for static export
-      const response = await fetch(`${apiUrl}/api/generate/`, {
+      // Use the Next.js API proxy route instead of direct backend call
+      const response = await fetch("/api/proxy-generate", {
         method: "POST",
         body: formData,
-        headers: {
-          'Accept': 'application/json',
-        },
       })
       
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.detail || "Failed to process image")
+        throw new Error(errorData.error || "Failed to process image")
       }
       
       const data = await response.json()
@@ -81,19 +92,6 @@ export function ImageCombiner() {
       resultSectionRef.current.focus({ preventScroll: true });
     }
   }, [resultImage]);
-
-  // Update preview when file changes
-  useEffect(() => {
-    if (selectedFile) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreview(reader.result as string)
-      }
-      reader.readAsDataURL(selectedFile)
-    } else {
-      setPreview(null)
-    }
-  }, [selectedFile]);
 
   return (
     <div className="max-w-6xl mx-auto">
