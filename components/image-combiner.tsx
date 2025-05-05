@@ -18,22 +18,21 @@ export function ImageCombiner() {
   const [error, setError] = useState<string | null>(null)
   const resultSectionRef = useRef<HTMLDivElement>(null)
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null
-    setSelectedFile(file)
-    setResultImage(null)
-    setError(null)
-    
-    if (file) {
+  // Update preview when selectedFile changes
+  useEffect(() => {
+    if (selectedFile) {
       const reader = new FileReader()
       reader.onloadend = () => {
         setPreview(reader.result as string)
       }
-      reader.readAsDataURL(file)
+      reader.readAsDataURL(selectedFile)
+      // Reset result and error when a new file is selected
+      setResultImage(null)
+      setError(null)
     } else {
       setPreview(null)
     }
-  }
+  }, [selectedFile])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
